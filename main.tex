@@ -1,0 +1,217 @@
+\documentclass[15pt]{article}
+\usepackage[utf8]{inputenc}
+%\renewcommand{\baselinestretch}{1.3}
+\usepackage[czech]{babel}
+\usepackage{xcolor}
+\usepackage{comment}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{algorithm}
+\usepackage{algorithmicx}
+\usepackage{gensymb}
+\usepackage[margin=1in]{geometry}
+\usepackage{setspace}
+\usepackage{parskip}
+\setlength{\parindent}{20pt}
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\rhead{}
+\lhead{Algoritmy počítačové kartografie}
+\usepackage{graphicx}
+\graphicspath{ {./images/} } 
+
+\begin{document} 
+
+% TITULNÍ STRÁNKA
+\begin{titlepage}
+        \centering
+        {\large Přírodovědecká fakulta\par}
+        {\large Univerzita Karlova\par}
+        \vspace{1.5cm}
+        \includegraphics[scale=0.4]{logo.png}\\
+        \vspace{1.5cm}
+        {\large Algoritmy počítačové kartografie}\\
+        \vspace{0.2cm}
+        {\large\textbf{Úkol č. 2: Generalizace budov}\par}
+        \vspace{1.5cm}
+        {\large Anna Brázdová a Petra Pajmová \par}
+        \vspace{1.5cm}
+        {\large 2.N-GKDPZ \par}
+        {\large Praha 2024 \par}
+        \vspace{1cm}
+\end{titlepage}
+
+\begin{spacing}{1.5}
+
+% ZADÁNÍ 
+\noindent\emph{Vstup: množina budov B =} \{$B_i$\}$_{i=0}^n$,\emph{budova} $B_i = $  \{$P_{i,j}$\}$_{j=1}^m$.
+
+\noindent\emph{Výstup: $G(B_i)$}.
+
+\noindent Ze souboru nečtěte vstupní data představovaná lomovými body budov a proveďte generalizaci budov do úrovně detailu LOD0. Pro tyto účely použijte vhodnou datovou sadu, např. ZABAGED, testování proveďte nad třemi datovými sadami (historické centrum měst, intravilán - sídliště, intravilán - izolovaná zástavba). 
+
+\noindent Pro každou budovu určtete její hlavní směry metodami:
+
+\begin{itemize}
+  \item Minimum Area Enclosing Rectangle,
+  \item PCA.
+\end{itemize}
+
+\noindent U první metody použijte některý z algoritmů pro konstrukci konvexní obálky. Budovu při generalizaci do úrovně detailu LOD0 nahraďte obdélníkem orientovaným v obou hlavních směrech, se středem v těžišti budovy, jeho plocha bude stejná jako plocha budovy. Výsledky generalizace vhodně vizualizujte.
+
+\noindent Otestujte a porovnejte efektivitu obou metod s využitím hodnotících ktitérií. Pokuste se rozhodnout, pro které tvary budov dávají metody nevhodné vásledky, a pro které naopak poskytují vhodnou aproximaci.
+
+\bigbreak
+
+% insert table
+\noindent\textbf{Hodnocení}
+\bigbreak
+\begin{center}
+\begin{tabular}{|l|l|}
+
+\hline
+\textbf{Krok} & \textbf{hodnocení} \\ [0.5ex]  \hline\hline
+Generalizace budov metodami Minimum Area Enclosing Rectangle a PCA. & 15 b. \\ \hline
+\textit{Generalizace budov metodou Longest Edge.} & \textit{+ 5 b.} \\ \hline
+\textit{Generalizace budov metodou Wall Average.} & \textit{+ 8 b.} \\ \hline
+\textit{Generalizace budov metodou Weighted Bisector.} & \textit{+ 10 b.} \\ \hline
+\textit{Implementace další metody konstrukce konvexní obálky.} & \textit{+ 5 b.} \\ \hline
+\textit{Ošetření singulárních případů při generování konvexní obálky.} & \textit{+ 2 b.} \\ \hline
+\textbf{Celkem} & \textbf{45 b.} \\ [0.5ex]  \hline
+
+\end{tabular}
+\end{center}
+
+
+
+% POPIS A ROZBOR PROBLÉMU
+\newpage
+\section*{Popis a rozbor problému}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\newpage
+\section*{Problematické situace a jejich rozbor}
+
+\newpage
+\section*{Popisy algoritmů formálním jazykem}
+
+% pseudokód jarvis scan
+\subsubsection*{Pseudokód metody Jarvis Scan}
+    \begin{algorithm}
+        \caption {\textit{Jarvis Scan}}
+        \begin{algorithmic}[1]
+            \State inicializuj konvexní obálku
+            \State najdi počáteční bod $q$ s minimální hodnotou souřadnice $y$ 
+            \State najdi počáteční bod $s$ s minimální hodnotou souřadnice $x$
+            \State inicializuj poslední dva body
+            \State přidej počáteční bod do konvexní obálky
+            \State \textbf{dokud} $p_{j+1} \neq p_{min}$:
+            \State \indent \textbf{pro} každý bod z množiny:
+            \State \indent \indent vypočti úhel $\omega$
+            \State \indent \indent $p_{j+1} = max \omega$
+            \State \indent \indent přidej $p_{j+1}$ do konvexní obálky
+            \State \indent \indent aktualizuj poslední dva body konvexní obálky
+        \end{algorithmic}
+    \end{algorithm}
+
+% pseudokód winding number
+\subsubsection*{Pseudokód metody Minimum Area Enclosing Rectangle}
+    \begin{algorithm}
+        \caption {\textit{Minimum Area Enclosing Rectangle}}
+        \begin{algorithmic}[1]
+            \State vytvoř konvexní obálku
+            \State inicializuj $MMB$ a vypočítej jeho plochu $A$
+            \State \textbf{pro} každou hranu konvexní obálky
+            \State \indent vypočti úhel $\sigma$
+            \State \indent otoč konvexní obálku o úhel $-\sigma$
+            \State \indent spočti $MMB_{i}$ a vypočítej jeho plochu $A_{i}$
+            \State \indent \textbf{pokud} $A_{i} >  A$:
+            \State \indent \indent $A = A_{i}$
+            \State \indent \indent $MMB$ = $MMB_{i}$
+            \State \indent \indent $\sigma = \sigma_{i}$
+            \State otoč $MMB_{i}$ o $\sigma_{i}$ a přeškáluj jeho plochu, tak, že $A_{i} =  A$
+        \end{algorithmic}
+    \end{algorithm}
+    
+% pseudokód longest edge
+\subsubsection*{Pseudokód metody Longest Edge}
+    \begin{algorithm}
+        \caption {\textit{Longest Edge}}
+        \begin{algorithmic}[1]
+            \State inicializuj počet vrcholů $n$ a nejdelší hranu $l_{max} = 0$
+            \State \textbf{pro} každou hranu:
+            \State \indent vypočti délku hrany $l$
+            \State \indent \textbf{pokud} $l > l_{max}$:
+            \State \indent \indent $l_{max} = l$
+            \State \indent \indent vypočti směrnici $l_{max}$ $\sigma$
+            \State \indent otoč budovu o $ - \sigma$
+            \State \indent zkonstruuj $MMB$ a vypočti jeho plochu $A$
+            \State \indent otoč $MMB_{i}$ o $\sigma_{i}$ 
+            \State \indent vypočti plochu budovy $A_{b}$ a přeškáluj plochu $MMB$ tak, že $A = A_{b}$
+        \end{algorithmic}
+    \end{algorithm}
+
+% pseudokód longest edge
+\subsubsection*{Pseudokód metody Wall Average}
+    \begin{algorithm}
+        \caption {\textit{Wall Average}}
+        \begin{algorithmic}[1]
+            \State vypočítej směrnici $\sigma$ pro libovolnou hranu
+            \State inicializuj zbytek $r = 0$
+            \State \textbf{pro} každou hranu:
+            \State \indent vypočti směrnici $\sigma_{i}$
+            \State \indent vypočti  $\Delta\sigma$
+            \State \indent vypočti $k{i}$ a $r{i}$
+            \State vypočti průměrný úhel $\sigma$:
+            \State otoč budovu o $ - \sigma$
+            \State zkonstruuj $MMB$ a vypočti jeho plochu $A$
+            \State otoč $MMB$ o $\sigma$ 
+            \State vypočti plochu budovy $A_{b}$ a přeškáluj plochu $MMB$ tak, že $A = A_{b}$
+        \end{algorithmic}
+    \end{algorithm}
+
+
+\newpage
+\section*{Vstupní data a výstupní data}
+
+\newpage
+\section*{Dokumentace}
+
+\newpage
+\section*{Závěr}
+
+\newpage
+\section*{Seznam literatury}
+
+
+\end{spacing}
+\end{document}
