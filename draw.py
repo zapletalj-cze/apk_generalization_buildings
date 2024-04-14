@@ -11,25 +11,23 @@ class Draw(QWidget):
         super().__init__(*args, **kwargs)
         #definice našeho bodu a jeho velikosti
 
-        self.building = QPolygonF()
-        self.ch = QPolygonF()
-        self.mbr = QPolygonF()
+        self.buildings = []
+        self.ch = []
+        self.mbr_list = []
         self.pol = QPolygonF()
         self.polygons = []
         self.features = None
         self.min_max = [0,0,10,10]
         self.q = QPointF(-100, -100)
-        self.pol = QPolygonF()
         self.result = []
 
     # function for loading input data
-    def loadData(self, filename):   
+    def loadData(self):
         # load objects from shapefile
         filename, _ = QFileDialog.getOpenFileName(self, "Open file", "", "Shapefile (*.shp)")
         if filename:
             shp = shapefile.Reader(filename)
             self.features = shp.shapes()
-
             # calculate minimum and maximum coordinates
             min_x, min_y, max_x, max_y = float('inf'), float('inf'), -float('inf'), -float('inf')
             for feature in self.features:
@@ -48,16 +46,16 @@ class Draw(QWidget):
         height = self.frameGeometry().height()
         
         # initialize list for storing polygons
-        self.polygons = [None] * len(self.features)
+        self.buildings = [None] * len(self.features)
 
         # rescale data and create polygons
         for k, feature in enumerate(self.features):
-            self.polygons[k] = QPolygonF()
+            self.buildings[k] = QPolygonF()
             for point in feature.points:
                 x = int(((point[0] - self.min_max[0]) / (self.min_max[2] - self.min_max[0]) * width))
                 y = int((height - (point[1] - self.min_max[1]) / (self.min_max[3] - self.min_max[1]) * height))
                 p = QPointF(x, y)
-                self.polygons[k].append(p)        
+                self.buildings[k].append(p)
 
     def mousePressEvent(self, e: QMouseEvent):
         #get cursor position
@@ -75,7 +73,6 @@ class Draw(QWidget):
         
     def paintEvent(self, e: QPaintEvent):
         #draw situation
-        
         #create new object
         qp = QPainter(self)
         #start drawing
@@ -83,45 +80,42 @@ class Draw(QWidget):
         # #set graphical attributes
         qp.setPen(Qt.GlobalColor.black)
         qp.setBrush(Qt.GlobalColor.cyan)
-        
-        #draw polygon
-        qp.drawPolygon(self.building)
-        
-        for index, polygon in enumerate(self.polygons):
-            # set graphical attributes
-            qp.setPen(QPen(Qt.GlobalColor.black))
-            qp.setBrush(Qt.GlobalColor.lightGray)
-            qp.drawPolygon(polygon)
-        
-        #draw convex hull
-        qp.setPen(Qt.GlobalColor.red)
-        qp.setBrush(Qt.GlobalColor.transparent)
-        
-        #draw minimum bounding box
-        qp.drawPolygon(self.mbr)
-        
-        
+        if len(self.mbr_list) > 0:
+            for (mbr, building) in zip(self.mbr_list, self.buildings):
+                qp.setPen(QPen(Qt.GlobalColor.black))
+                qp.setBrush(Qt.GlobalColor.lightGray)
+                qp.drawPolygon(building)
+                qp.setPen(Qt.GlobalColor.red)
+                qp.setBrush(Qt.GlobalColor.transparent)
+                qp.drawPolygon(mbr)
+        else:
+            for index, building in enumerate(self.buildings):
+                # set graphical attributes
+                qp.setPen(QPen(Qt.GlobalColor.black))
+                qp.setBrush(Qt.GlobalColor.lightGray)
+                qp.drawPolygon(building)
         qp.end()
         
-    def getBuilding(self):
+    def getBuildings(self):
         # Return building
-        return self.building
-    
-    def setMBR(self, mbr):
+        return self.buildings
+
+    def setMBR(self, mbr_list):
         #Set MBR
-        self.mbr = mbr
-        
-    
-    
+        self.mbr_list = mbr_list
+
+    def clearResults(self):
+        self.mbr_list.clear()
+
     def clearData(self):
         #Clear building
-        self.building.clear()
+        self.buildings.clear()
         
         #Clear CH
         self.ch.clear()
         
         #Clear MBR
-        self.mbr.clear()
+        self.mbr_list.clear()
                 
         #Repaint screen
         self.repaint()

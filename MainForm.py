@@ -11,6 +11,7 @@ from algorithms import *
 from draw import Draw
 from draw import *
 
+
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -59,21 +60,41 @@ class Ui_MainWindow(object):
         icon3.addPixmap(QtGui.QPixmap("images/icons/pca.png"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
         self.actionPCA.setIcon(icon3)
         self.actionPCA.setObjectName("actionPCA")
-        self.actionClear_results = QtGui.QAction(parent=MainWindow)
+        self.actionLongestedge = QtGui.QAction(parent=MainWindow)
         icon4 = QtGui.QIcon()
-        icon4.addPixmap(QtGui.QPixmap("images/icons/clear_ch.png"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
-        self.actionClear_results.setIcon(icon4)
-        self.actionClear_results.setObjectName("actionClear_results")
-        self.actionClear_all = QtGui.QAction(parent=MainWindow)
+        icon4.addPixmap(QtGui.QPixmap("images/icons/longestedge.png"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        self.actionLongestedge.setIcon(icon4)
+        self.actionLongestedge.setObjectName("actionLongestedge")
+        self.actionWallAverage = QtGui.QAction(parent=MainWindow)
         icon5 = QtGui.QIcon()
-        icon5.addPixmap(QtGui.QPixmap("images/icons/clear_er.png"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
-        self.actionClear_all.setIcon(icon5)
+        icon5.addPixmap(QtGui.QPixmap("images/icons/wa.png"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        self.actionWallAverage.setIcon(icon5)
+        self.actionWallAverage.setObjectName("actionWallAverage")
+        self.actionWeightedbisector = QtGui.QAction(parent=MainWindow)
+        icon6 = QtGui.QIcon()
+        icon6.addPixmap(QtGui.QPixmap("images/icons/weightedbisector.png"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        self.actionWeightedbisector.setIcon(icon6)
+        self.actionWeightedbisector.setObjectName("actionWeightedBisector")
+        self.actionClear_results = QtGui.QAction(parent=MainWindow)
+        icon7 = QtGui.QIcon()
+        icon7.addPixmap(QtGui.QPixmap("images/icons/clear_ch.png"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        self.actionClear_results.setIcon(icon7)
+        self.actionClear_results.setObjectName("actionClear_results")
+
+        self.actionClear_all = QtGui.QAction(parent=MainWindow)
+        icon8 = QtGui.QIcon()
+        icon8.addPixmap(QtGui.QPixmap("images/icons/clear_er.png"), QtGui.QIcon.Mode.Normal, QtGui.QIcon.State.Off)
+        self.actionClear_all.setIcon(icon8)
         self.actionClear_all.setObjectName("actionClear_all")
+
         self.menuFile.addAction(self.actionOpen)
         self.menuFile.addSeparator()
         self.menuFile.addAction(self.actionExit)
         self.menuSimplify.addAction(self.actionMinimum_bounding_rectangle)
         self.menuSimplify.addAction(self.actionPCA)
+        self.menuSimplify.addAction(self.actionLongestedge)
+        self.menuSimplify.addAction(self.actionWallAverage)
+        self.menuSimplify.addAction(self.actionWeightedbisector)
         self.menuView.addAction(self.actionClear_results)
         self.menuView.addSeparator()
         self.menuView.addAction(self.actionClear_all)
@@ -84,6 +105,9 @@ class Ui_MainWindow(object):
         self.toolBar.addSeparator()
         self.toolBar.addAction(self.actionMinimum_bounding_rectangle)
         self.toolBar.addAction(self.actionPCA)
+        self.toolBar.addAction(self.actionLongestedge)
+        self.toolBar.addAction(self.actionWallAverage)
+        self.toolBar.addAction(self.actionWeightedbisector)
         self.toolBar.addSeparator()
         self.toolBar.addAction(self.actionClear_results)
         self.toolBar.addAction(self.actionClear_all)
@@ -91,53 +115,116 @@ class Ui_MainWindow(object):
         self.toolBar.addAction(self.actionExit)
 
         self.retranslateUi(MainWindow)
-        self.actionOpen.triggered.connect(self.openClick) # type: ignore
-        self.actionMinimum_bounding_rectangle.triggered.connect(self.mbrClick) # type: ignore
-        self.actionPCA.triggered.connect(self.pcaClick) # type: ignore
-        self.actionClear_results.triggered.connect(self.clearResultsClick) # type: ignore
-        self.actionClear_all.triggered.connect(self.clearAllClick) # type: ignore
+        self.actionOpen.triggered.connect(self.openClick)  # type: ignore
+        self.actionMinimum_bounding_rectangle.triggered.connect(self.mbrClick)  # type: ignore
+        self.actionPCA.triggered.connect(self.pcaClick)  # type: ignore
+        self.actionLongestedge.triggered.connect(self.longest_edgeClick)  # type: ignore
+        self.actionWallAverage.triggered.connect(self.wall_averageClick)  # type: ignore
+        self.actionWeightedbisector.triggered.connect(self.weighted_bisectorClick)  # type: ignore
+        self.actionClear_results.triggered.connect(self.clearResultsClick)  # type: ignore
+        self.actionClear_all.triggered.connect(self.clearAllClick)  # type: ignore
         self.actionExit.triggered.connect(MainWindow.close)
-        
+
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
-        
-        
+
     def openClick(self, filename):
-        self.Canvas.loadData(filename)
+        self.Canvas.loadData()
         self.Canvas.resizeData()
-    
+
         # function to fit data to the widget
+
     def resizeDisplay(self):
         self.Canvas.resizeData()
         self.Canvas.repaint()
-    
+
     def mbrClick(self):
-        building = self.Canvas.getBuilding()
-        
+        buildings = self.Canvas.getBuildings()
+        maer_list = []
         a = Algorithms()
-        maer = a.mbr(building)
-        #update mbr
-        self.Canvas.setMBR(maer)
+        for building in buildings:
+            maer = a.createMBR(building)
+            if maer is not None:
+                maer_list.append(maer)
+            else:
+                buildings.remove(building)
+                warning_box = QMessageBox()
+                warning_box.setText("Acknowledgement")
+                warning_box.setIcon(QMessageBox.Icon.Warning)
+                warning_box.setInformativeText(
+                    f"Found empty geometry in buildings dataset, skipping...")
+                warning_box.exec()
+        # update mbr
+        self.Canvas.setMBR(maer_list)
         self.Canvas.repaint()
-        
+
     def pcaClick(self):
-                #Get building
-        building = self.Canvas.getBuilding()
-        
-        #Simplify building
+        # Get building
+        buildings = self.Canvas.getBuildings()
+        erp_pca_list = []
         a = Algorithms()
-        pca = a.createERPCA(building)
-        
-        #Update MBR
-        self.Canvas.setMBR(pca)      
-        
-        #Repaint screen
+        for building in buildings:
+            erp_pca = a.createERPCA(building)
+            if erp_pca is not None:
+                erp_pca_list.append(erp_pca)
+        # Update MBR
+        self.Canvas.setMBR(erp_pca_list)
+        # Repaint screen
         self.Canvas.repaint()
-        
-    def clearResultsClick(self): 
-        pass
+
+    def longest_edgeClick(self):
+        # Get building
+        buildings = self.Canvas.getBuildings()
+        le_list = []
+        a = Algorithms()
+        for building in buildings:
+            le = a.longestEdge(building)
+            if le is not None:
+                le_list.append(le)
+
+        # Update MBR
+        self.Canvas.setMBR(le_list)
+
+        # Repaint screen
+        self.Canvas.repaint()
+
+    def wall_averageClick(self):
+        # Get building
+        buildings = self.Canvas.getBuildings()
+        wa_list = []
+        a = Algorithms()
+        for building in buildings:
+            wa = a.wallAverage(building)
+            if wa is not None:
+                wa_list.append(wa)
+        # Update MBR
+        self.Canvas.setMBR(wa_list)
+
+        # Repaint screen
+        self.Canvas.repaint()
+
+    def weighted_bisectorClick(self):
+        # Get building
+        buildings = self.Canvas.getBuildings()
+        weigh_bisect_list = []
+        a = Algorithms()
+        for building in buildings:
+            weigh_bis = a.weighted_bisector(building)
+            if weigh_bis is not None:
+                weigh_bisect_list.append(weigh_bis)
+        # Update MBR
+        self.Canvas.setMBR(weigh_bisect_list)
+
+        # Repaint screen
+        self.Canvas.repaint()
+
+
+    def clearResultsClick(self):
+        self.Canvas.clearResults()
+        self.Canvas.repaint()
+
+
     def clearAllClick(self):
         self.Canvas.clearData()
-        
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
@@ -152,15 +239,23 @@ class Ui_MainWindow(object):
         self.actionExit.setText(_translate("MainWindow", "Exit"))
         self.actionExit.setToolTip(_translate("MainWindow", "Close application"))
         self.actionMinimum_bounding_rectangle.setText(_translate("MainWindow", "Minimum bounding rectangle"))
-        self.actionMinimum_bounding_rectangle.setToolTip(_translate("MainWindow", "Simplify using minimum bounding rectangle"))
+        self.actionLongestedge.setText(_translate("MainWindow", "Longest edge algorithm"))
+        self.actionWallAverage.setText(_translate("MainWindow", "Wall Average algorithm"))
+        self.actionWeightedbisector.setText(_translate("MainWindow", "Weighted Bisector algorithm"))
+        self.actionMinimum_bounding_rectangle.setToolTip(
+            _translate("MainWindow", "Simplify using minimum bounding rectangle"))
         self.actionPCA.setText(_translate("MainWindow", "PCA"))
         self.actionPCA.setToolTip(_translate("MainWindow", "Simplify building using PCA"))
+        self.actionLongestedge.setToolTip(_translate("MainWindow", "Simplify building using Longest edge algorithm"))
+        self.actionWallAverage.setToolTip(_translate("MainWindow", "Simplify building using Wall Average algorithm"))
+        self.actionWeightedbisector.setToolTip(_translate("MainWindow", "Simplify building using Weighted Bisector algorithm"))
         self.actionClear_results.setText(_translate("MainWindow", "Clear results"))
         self.actionClear_all.setText(_translate("MainWindow", "Clear all"))
 
 
 if __name__ == "__main__":
     import sys
+
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()

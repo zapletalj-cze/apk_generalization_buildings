@@ -1,0 +1,42 @@
+\documentclass{article}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{amsmath}
+
+\begin{document}
+
+\begin{algorithm}
+\caption{Weighted Bisector}
+\label{alg:weighted_bisector}
+\begin{algorithmic}[1]
+\STATE Inicializovat prázdný slovník \texttt{dist} pro hledání nejdelších úhlopříček
+\STATE Inicializovat seznam \texttt{points} s body polygonu ($points = [(x_i, y_i)| p_i \in pol]$)
+\STATE \textbf{Najít dvě nejdelší uhlopříčky a získat jejich délky:} 
+  \FOR{$i = 0$ \textbf{do} $n-1$}  % Příkaz FOR
+    \FOR{$j = i+1$ \textbf{do} $n-1$}  % Příkaz FOR
+      \STATE Označit body $i$ a $j$ jako \texttt{point1} a \texttt{point2} (\texttt{point1 = points[i]}, \texttt{point2 = points[j]})
+      \STATE Do \texttt{key} uložit souřadnice bodů (\texttt{key} = (\texttt{point1}, \texttt{point2}))
+      \STATE Do \texttt{dist} uložit \texttt{point1} a \texttt{point2} a vzdálenost bodů (\texttt{dist[key]})
+    \ENDFOR
+  \ENDFOR
+\STATE Seřadit slovník \texttt{dist} podle hodnot vzdálenosti sestupně (\texttt{dist\_sort} = \texttt{sort(dist, descending)})
+\STATE Inicializovat prázdné seznamy \texttt{distances} a \texttt{angles} pro vzdálenosti a úhly
+\STATE $i = 0$
+\STATE \textbf{Vypočítat úhel mezi osou x a dvě nejdelšími uhlopříčkami:} 
+\FOR{$key$, $value$ \textbf{in} \texttt{dist\_sort}}
+  \STATE Označit body v klíči jako \texttt{point1} a \texttt{point2} (\texttt{point1, point2 = [QPointF(*point) for point in key]})
+  \STATE Spočítat změnu v x a y (\texttt{delta\_x = point2.x() - point1.x()}, \texttt{delta\_y = point2.y() - point1.y()})
+  \STATE Spočítat úhel vzhledem k ose x (\texttt{angle\_x = atan2(delta\_y, delta\_x) - $\pi/2$})
+  \STATE Přidat úhel \texttt{angle\_x} do \texttt{angles} a délku\texttt{distance} do \texttt{distances}
+\ENDFOR
+\STATE Spočítat vážený úhel (\texttt{angle\_weighted = (distances[0] $\cdot$ angles[0] + distances[1] $\cdot$ angles[1]) / (distances[0]+distances[1])})
+  \STATE \textbf{Váha je délka úhlopříčky} 
+\STATE Otočit polygon o $\sigma$ (\texttt{pol\_r = rotate(pol, $\sigma$)})
+\STATE Vytvořit nejmenší ohraničující obdélník z \texttt{pol\_r} (\texttt{mmb = createMMB(pol\_r)})
+\STATE Otočit \texttt{mmb} o $\sigma$ (\texttt{er = rotate(mmb, $\sigma$)})
+\STATE Změnit velikost \texttt{er} tak, aby obsahoval \texttt{pol} (\texttt{er\_r = resizeRectangle(er, pol)})
+\STATE \textbf{Vrať} \texttt{er\_r}
+\end{algorithmic}
+\end{algorithm}
+
+\end{document}
