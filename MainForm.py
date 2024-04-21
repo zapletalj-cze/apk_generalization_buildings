@@ -157,8 +157,6 @@ class Ui_MainWindow(object):
         else:
             self.Canvas.setVisible(True)
 
-
-
     def resizeDisplay(self):
         self.Canvas.resizeData()
         self.Canvas.repaint()

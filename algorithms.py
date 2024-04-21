@@ -452,14 +452,13 @@ class Algorithms:
     #     print(angle_ave_deg)
     #     # return angle_ave
 
-    def calculate_accuracy(self, pol: QPolygonF, er: QPolygonF):
 
-        # calculate main direction of the enclosing rectangle based on the longest edge
+    def calculate_accuracy(self, pol: QPolygonF, er: QPolygonF):
+        # calculate main direction of the enclosing rectangle based on the longest edge's direction
         n_er = len(er)
         longest_edge = 0
         point1 = QPointF()
         point2 = QPointF()
-        signal = 0
 
         for i in range(n_er):
             dx = er[(i + 1) % n_er].x() - er[i].x()
@@ -470,7 +469,7 @@ class Algorithms:
                 point1 = er[i]
                 point2 = er[(i + 1) % n_er]
 
-        # compute angle of the longest edge
+        # compute angle of the longest edge (consider quadrant handling)
         main_direction = atan2(point2.y() - point1.y(), point2.x() - point1.x())
 
         # process all edges
@@ -480,34 +479,30 @@ class Algorithms:
         angular_deviations = []
 
         for i in range(n_pol):
-            # compute angle for current edge
+            # compute current edge vector
             dx_i = pol[(i + 1) % n_pol].x() - pol[i].x()
             dy_i = pol[(i + 1) % n_pol].y() - pol[i].y()
-            sigma_i = atan2(dy_i, dx_i)
+            angular_deviation = atan2(dy_i, dx_i) - main_direction
+            if angular_deviation > pi:
+                angular_deviation -= 2 * pi
 
-            ki = 2 * sigma_i / pi
-            k_floor = floor(ki)
-            ri = (ki - k_floor) * pi / 2
+            angular_deviations.append(angular_deviation)
 
-            # append the remainder of the angle to the list
-            angular_deviations.append(ri)
-
-        # compute the mean of angular deviations
         mean_angular_deviation = sum(angular_deviations) / n_pol
-        # compute d_sigma1
-        d_sigma1 = (pi / (2 * n_pol)) * sum(angular_deviations)*180/pi
-        if d_sigma1 > 45:
-            d_sigma1 = 90-d_sigma1
-        if d_sigma1 < 10:
-            signal = 1
-        return signal
+        mean_angular_deviation = mean_angular_deviation * 180/pi
 
+        # check if the mean angular deviation is greater than 10 degrees and return signal to canvas
+        if mean_angular_deviation > 10:
+            return 0
+        else:
+            return 1
 
-
-        
 
 
             
+
+
+                
         
         
 
