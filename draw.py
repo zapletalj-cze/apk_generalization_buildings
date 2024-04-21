@@ -4,13 +4,28 @@ from PyQt6.QtGui import QMouseEvent, QPaintEvent
 from PyQt6.QtWidgets import *
 import shapefile
 
+class Grid(QGraphicsItem):
+    def __init__(self, scene):
+        super().__init__()
+        self.scene = scene
+        self.setZValue(-1)
+
+    def boundingRect(self):
+        return QRectF(0, 0, self.scene.width(), self.scene.height())
+
+    def paint(self, painter, option, widget):
+        painter.setPen(QPen(Qt.GlobalColor.lightGray, 0))
+        for x in range(0, self.scene.width(), 100):
+            painter.drawLine(x, 0, x, self.scene.height())
+        for y in range(0, self.scene.height(), 100):
+            painter.drawLine(0, y, self.scene.width(), y)
+
 
 class Draw(QWidget):
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         #definice našeho bodu a jeho velikosti
-
         self.buildings = []
         self.ch = []
         self.mbr_list = []
@@ -20,6 +35,14 @@ class Draw(QWidget):
         self.min_max = [0,0,10,10]
         self.q = QPointF(-100, -100)
         self.result = []
+        self.grid = None
+        self.visible = True
+
+    
+    def setVisible(self, visible):
+        self.visible = visible
+        super().setVisible(visible)
+   
 
     # function for loading input data
     def loadData(self):

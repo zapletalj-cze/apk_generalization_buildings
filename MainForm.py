@@ -7,6 +7,8 @@
 
 
 from PyQt6 import QtCore, QtGui, QtWidgets
+from PyQt6.QtWidgets import QCheckBox, QGraphicsItem
+
 from algorithms import *
 from draw import Draw
 from draw import *
@@ -124,7 +126,10 @@ class Ui_MainWindow(object):
         self.actionClear_results.triggered.connect(self.clearResultsClick)  # type: ignore
         self.actionClear_all.triggered.connect(self.clearAllClick)  # type: ignore
         self.actionExit.triggered.connect(MainWindow.close)
-
+        self.checkBox = QCheckBox("Calculate accuracy")
+        self.checkBox.setChecked(True)
+        self.checkBox.stateChanged.connect(self.changeStatusClick)
+        self.toolBar.addWidget(self.checkBox)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def openClick(self, filename):
@@ -133,9 +138,31 @@ class Ui_MainWindow(object):
 
         # function to fit data to the widget
 
+    def show_info_box(self, algorithm_name, accuracy):
+        info_box = QMessageBox()
+        info_box.setWindowTitle("Simplification accuracy")
+        info_box.setInformativeText(f"Algorithm: {algorithm_name}\nAccuracy: {round(accuracy, 3)} %")
+        info_box.setIcon(QMessageBox.Icon.Information)
+        info_box.setStandardButtons(QMessageBox.StandardButton.Ok)
+        timer = QTimer()
+        timer.timeout.connect(info_box.close)
+        timer.setSingleShot(True)
+        timer.start(10000) 
+        info_box.exec()
+
+    def changeStatusClick(self, state):
+        if state == 0:
+            self.Canvas.setVisible(False)
+            print(self.Canvas.visible)
+        else:
+            self.Canvas.setVisible(True)
+
+
+
     def resizeDisplay(self):
         self.Canvas.resizeData()
         self.Canvas.repaint()
+
 
     def mbrClick(self):
         buildings = self.Canvas.getBuildings()
@@ -146,13 +173,24 @@ class Ui_MainWindow(object):
             if maer is not None:
                 maer_list.append(maer)
             else:
-                buildings.remove(building)
                 warning_box = QMessageBox()
                 warning_box.setText("Acknowledgement")
                 warning_box.setIcon(QMessageBox.Icon.Warning)
                 warning_box.setInformativeText(
                     f"Found empty geometry in buildings dataset, skipping...")
                 warning_box.exec()
+        n = len(maer_list)
+        if self.Canvas.visible:
+            signals = []
+            for i in range(n):
+                building = buildings[i]
+                erp = maer_list[i]
+                signal = a.calculate_accuracy(building, erp)
+                signals.append(signal)
+            accuracy_meth = (mean(signals)*100)
+            algorithm_name = 'Minimum bounding rectangle.'
+            self.show_info_box(algorithm_name=algorithm_name, accuracy=accuracy_meth)
+        
         # update mbr
         self.Canvas.setMBR(maer_list)
         self.Canvas.repaint()
@@ -166,6 +204,19 @@ class Ui_MainWindow(object):
             erp_pca = a.createERPCA(building)
             if erp_pca is not None:
                 erp_pca_list.append(erp_pca)
+        n = len(erp_pca_list)
+        if self.Canvas.visible:
+            signals = []
+            for i in range(n):
+                building = buildings[i]
+                erp = erp_pca_list[i]
+                signal = a.calculate_accuracy(building, erp)
+                signals.append(signal)
+            accuracy_meth = (mean(signals)*100)
+            algorithm_name = 'Principal Component Analysis'
+            self.show_info_box(algorithm_name=algorithm_name, accuracy=accuracy_meth)
+
+
         # Update MBR
         self.Canvas.setMBR(erp_pca_list)
         # Repaint screen
@@ -180,6 +231,18 @@ class Ui_MainWindow(object):
             le = a.longestEdge(building)
             if le is not None:
                 le_list.append(le)
+
+        n = len(le_list)
+        if self.Canvas.visible:
+            signals = []
+            for i in range(n):
+                building = buildings[i]
+                erp = le_list[i]
+                signal = a.calculate_accuracy(building, erp)
+                signals.append(signal)
+            accuracy_meth = (mean(signals)*100)
+            algorithm_name = 'Longest edge'
+            self.show_info_box(algorithm_name=algorithm_name, accuracy=accuracy_meth)
 
         # Update MBR
         self.Canvas.setMBR(le_list)
@@ -196,6 +259,18 @@ class Ui_MainWindow(object):
             wa = a.wallAverage(building)
             if wa is not None:
                 wa_list.append(wa)
+        
+        n = len(wa_list)
+        if self.Canvas.visible:
+            signals = []
+            for i in range(n):
+                building = buildings[i]
+                erp = wa_list[i]
+                signal = a.calculate_accuracy(building, erp)
+                signals.append(signal)
+            accuracy_meth = (mean(signals)*100)
+            algorithm_name = 'Wall average algortithm'
+            self.show_info_box(algorithm_name=algorithm_name, accuracy=accuracy_meth)
         # Update MBR
         self.Canvas.setMBR(wa_list)
 
@@ -211,6 +286,24 @@ class Ui_MainWindow(object):
             weigh_bis = a.weighted_bisector(building)
             if weigh_bis is not None:
                 weigh_bisect_list.append(weigh_bis)
+        
+        n = len(weigh_bisect_list)
+        for i in range(n):
+            building = buildings[i]
+            erp = weigh_bisect_list[i]
+            a.calculate_accuracy(building, erp)
+        
+        n = len(weigh_bisect_list)
+        if self.Canvas.visible:
+            signals = []
+            for i in range(n):
+                building = buildings[i]
+                erp = weigh_bisect_list[i]
+                signal = a.calculate_accuracy(building, erp)
+                signals.append(signal)
+            accuracy_meth = (mean(signals)*100)
+            algorithm_name = 'Weighted bisector algorithm.'
+            self.show_info_box(algorithm_name=algorithm_name, accuracy=accuracy_meth)
         # Update MBR
         self.Canvas.setMBR(weigh_bisect_list)
 
@@ -255,7 +348,6 @@ class Ui_MainWindow(object):
 
 if __name__ == "__main__":
     import sys
-
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()

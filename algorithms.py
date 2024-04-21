@@ -119,7 +119,6 @@ class Algorithms:
         return ch
 
     def createMMB(self, pol: QPolygonF):
-
         # Compute points with extreme coordinates
         px_min = min(pol, key=lambda k: k.x())
         px_max = max(pol, key=lambda k: k.x())
@@ -402,6 +401,110 @@ class Algorithms:
         er_r = self.resizeRectangle(er, pol)
         return er_r
 
+    # def calculate_accuracy(self, pol: QPolygonF, er: QPolygonF):
+    #
+    #     # calculate main direction of the enclosing rectangle based on the longest edge
+    #     k = len(er)
+    #     longest_edge = 0
+    #     point1 = QPointF()
+    #     point2 = QPointF()
+    #     angle
+    #
+    #     for i in range(k):
+    #         dx = er[(i + 1) % k].x() - er[i].x()
+    #         dy = er[(i + 1) % k].y() - er[i].y()
+    #         edge_length = sqrt(dx ** 2 + dy ** 2)
+    #         if edge_length > longest_edge:
+    #             longest_edge = edge_length
+    #             point1 = er[i]
+    #             point2 = er[(i + 1) % k]
+    #
+    #     # compute angle of the longest edge
+    #     main_direction = atan2(point2.y() - point1.y(), point2.x() - point1.x())
+    #
+    #     # compute angle of the building
+    #     # process all edges
+    #     n = len(pol)
+    #
+    #     # inicilize remainder of the angle
+    #     wall_sum = 0
+    #
+    #     for i in range(1, n):
+    #         # compute angle for current edge
+    #         dx_i = pol[(i + 1) % n].x() - pol[i].x()
+    #         dy_i = pol[(i + 1) % n].y() - pol[i].y()
+    #         sigma_i = atan2(dy_i, dx_i)
+    #
+    #         # compute angle difference
+    #         # angle_diff = abs(angle_i - main_direction)
+    #
+    #         # compute fraction of pi
+    #         ki = 2 * sigma_i / pi
+    #         ki_floor = floor(ki)
+    #
+    #
+    #         # compute remainder
+    #         ri = (ki - ki_floor) * pi / 2
+    #         angle_diff = abs(ri-main_direction)
+    #         wall_sum += angle_diff
+    #         angle_ave = pi/2*n * wall_sum
+    #         angle_ave_deg = angle_ave*180/pi
+    #     print(angle_ave_deg)
+    #     # return angle_ave
+
+    def calculate_accuracy(self, pol: QPolygonF, er: QPolygonF):
+
+        # calculate main direction of the enclosing rectangle based on the longest edge
+        n_er = len(er)
+        longest_edge = 0
+        point1 = QPointF()
+        point2 = QPointF()
+        signal = 0
+
+        for i in range(n_er):
+            dx = er[(i + 1) % n_er].x() - er[i].x()
+            dy = er[(i + 1) % n_er].y() - er[i].y()
+            edge_length = sqrt(dx ** 2 + dy ** 2)
+            if edge_length > longest_edge:
+                longest_edge = edge_length
+                point1 = er[i]
+                point2 = er[(i + 1) % n_er]
+
+        # compute angle of the longest edge
+        main_direction = atan2(point2.y() - point1.y(), point2.x() - point1.x())
+
+        # process all edges
+        n_pol = len(pol)
+
+        # initialize remainder of the angle
+        angular_deviations = []
+
+        for i in range(n_pol):
+            # compute angle for current edge
+            dx_i = pol[(i + 1) % n_pol].x() - pol[i].x()
+            dy_i = pol[(i + 1) % n_pol].y() - pol[i].y()
+            sigma_i = atan2(dy_i, dx_i)
+
+            ki = 2 * sigma_i / pi
+            k_floor = floor(ki)
+            ri = (ki - k_floor) * pi / 2
+
+            # append the remainder of the angle to the list
+            angular_deviations.append(ri)
+
+        # compute the mean of angular deviations
+        mean_angular_deviation = sum(angular_deviations) / n_pol
+        # compute d_sigma1
+        d_sigma1 = (pi / (2 * n_pol)) * sum(angular_deviations)*180/pi
+        if d_sigma1 > 45:
+            d_sigma1 = 90-d_sigma1
+        if d_sigma1 < 10:
+            signal = 1
+        return signal
+
+
+
+        
 
 
             
