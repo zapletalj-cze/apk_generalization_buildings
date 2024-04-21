@@ -1,0 +1,29 @@
+\documentclass{article}
+\usepackage{algorithm}
+\usepackage{algorithmic}
+\usepackage{amsmath}
+
+\begin{document}
+
+\begin{algorithm}
+\caption{Generalizace pomocí PCA}
+\label{alg:create_erpca}
+\begin{algorithmic}[1]
+\STATE Inicializovat prázdné listy $x$ a $y$ pro planární souřadnice
+\FOR{$p$ v $pol$}
+  \STATE Přidat $p.x()$ do $x$
+  \STATE Přidat $p.y()$ do $y$
+\ENDFOR
+\STATE Vytvořit matici $P$ z $x$ a $y$ ($P = [[x], [y]]$)
+\STATE Vypočítat kovarianční matici $C$ z $P$ ($C = \text{cov}(P)$)
+\STATE Provést singulární rozklad $C$ na $U$, $S$, a $V$ ($[U, S, V] = \text{SVD}(C)$)
+\STATE Vypočítat vlastní vektory
+\STATE Otočit $pol$ o $-\sigma$ (jako $pol\_unrot$)
+\STATE Vytvořit minimální ohraničující obdelník ($MMB$) z $pol\_unrot$ ($MMB = \text{createMMB}(pol\_unrot)$)
+\STATE Otočit $MMB$ o $\sigma$ (označeno jako $er$)
+\STATE Změnit velikost $er$ tak, aby obsahoval $pol$ ($er\_r = \text{resizeRectangle}(er, pol)$)
+\STATE \textbf{Vrať} $er\_r$
+\end{algorithmic}
+\end{algorithm}
+
+\end{document}
